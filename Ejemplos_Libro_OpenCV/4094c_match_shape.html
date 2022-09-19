@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Comparación de formas</title>
+<link href="assets/js_example_style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<h2>Comparación de formas</h2>
+<p class="err" id="errorMessage"></p>
+</div>
+<div>
+    <table cellpadding="0" cellspacing="0" width="0" border="0">
+    <tr>
+        <td>
+            <canvas id="canvasInput"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasOutput"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="caption">canvasInput</div>
+        </td>
+        <td>
+            <div class="caption">canvasOutput</div>
+        </td>
+    </tr>
+    </table>
+</div>
+<div>
+    <p><strong>El resultado es: </strong><span id="matchShapesOutput"></span></p>
+</div>
+<script src="assets/utils.js" type="text/javascript"></script>
+<script id="codeSnippet" type="text/code-snippet">
+
+</script>
+<script type="text/javascript">
+let utils = new Utils('errorMessage');
+
+utils.loadImageToCanvas('assets/coins.png', 'canvasInput');
+
+utils.loadOpenCv(() => {
+    let src = cv.imread('canvasInput');
+    let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
+    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+    cv.threshold(src, src, 177, 200, cv.THRESH_BINARY);
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
+    cv.findContours(src, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+    let contourID0 = 10;
+    let contourID1 = 5;
+    let color0 = new cv.Scalar(255, 0, 0);
+    let color1 = new cv.Scalar(0, 0, 255);
+    // You can try more different parameters
+    let result = cv.matchShapes(contours.get(contourID0), contours.get(contourID1), 1, 0);
+    matchShapesOutput.innerHTML = result;
+    cv.drawContours(dst, contours, contourID0, color0, 1, cv.LINE_8, hierarchy, 100);
+    cv.drawContours(dst, contours, contourID1, color1, 1, cv.LINE_8, hierarchy, 100);
+    cv.imshow('canvasOutput', dst);
+    src.delete(); dst.delete(); contours.delete(); hierarchy.delete();
+});
+</script>
+</body>
+</html>

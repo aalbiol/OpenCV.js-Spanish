@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Cargar una imagen</title>
+</head>
+<body>
+<h2>Cargar una imagen</h2>
+<div>
+  <div class="inputoutput">
+    <img id="imageSrc" alt="No Image" />
+    <div class="caption">
+      imageSrc <input type="file" id="fileInput" name="file"/>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  // creamos el elemento del tag <img>
+  let imgElement = document.getElementById("imageSrc")
+
+  // creamos el elemento del tag <input>
+  let inputElement = document.getElementById("fileInput");
+
+  // al cambiar el valor del <input> colocamos la nueva imagen
+  inputElement.addEventListener("change", (e) => {
+    imgElement.src = URL.createObjectURL(e.target.files[0]);
+  }, false);
+</script>
+</body>
+</html>

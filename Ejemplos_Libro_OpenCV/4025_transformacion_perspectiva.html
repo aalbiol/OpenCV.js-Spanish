@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Transformación de perspectiva</title>
+<link href="assets/js_example_style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<h2>Transformación de perspectiva</h2>
+<div>
+<p class="err" id="errorMessage"></p>
+</div>
+<div>
+    <table cellpadding="0" cellspacing="0" width="0" border="0">
+    <tr>
+        <td>
+            <canvas id="canvasInput"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasOutput"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="caption">canvasInput</div>
+        </td>
+        <td>
+            <div class="caption">canvasOutput</div>
+        </td>
+    </tr>
+    </table>
+</div>
+
+<script src="assets/utils.js" type="text/javascript"></script>
+<script type="text/javascript">
+let utils = new Utils('errorMessage');
+
+// HTML
+utils.loadImageToCanvas('assets/lena.png', 'canvasInput');
+
+// OpenCV
+utils.loadOpenCv(() => {
+    let src = cv.imread('canvasInput');
+    let dst = new cv.Mat();
+    let dsize = new cv.Size(src.rows, src.cols);
+    // (data32F[0], data32F[1]) is the first point
+    // (data32F[2], data32F[3]) is the sescond point
+    // (data32F[4], data32F[5]) is the third point
+    // (data32F[6], data32F[7]) is the fourth point
+    let srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [56, 65, 368, 52, 28, 387, 389, 390]);
+    let dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, 300, 0, 0, 300, 300, 300]);
+    let M = cv.getPerspectiveTransform(srcTri, dstTri);
+    // Puede probar con diferentes parámetros
+    cv.warpPerspective(src, dst, M, dsize, cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
+    cv.imshow('canvasOutput', dst);
+    src.delete(); dst.delete(); M.delete(); srcTri.delete(); dstTri.delete();
+});
+</script>
+</body>
+</html>

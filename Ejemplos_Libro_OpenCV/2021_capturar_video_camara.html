@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capturar video desde la cámara</title>
+</head>
+<body>
+    <h2>Capturar video desde la cámara</h2>
+
+    <video id="videoInput"></video>
+    <script>
+       let video = document.getElementById("videoInput");
+        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            .then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch(function(err) {
+                console.log("An error occurred! " + err);
+            }); 
+    </script>
+    
+</body>
+</html>

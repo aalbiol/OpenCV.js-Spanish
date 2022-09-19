@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Visualizar una imagen en un canvas utilizando OpenCV</title>
+<link rel="stylesheet" href="assets/js_example_style.css">
+</head>
+<body>
+<h2>Visualizar una imagen en un canvas utilizando OpenCV</h2>
+<p id="status">OpenCV.js se está cargando...</p>
+<div>
+  <table cellpadding="0" cellspacing="0" width="0" border="0">
+  <tr>
+      <td>
+          <img id="imageSrc">
+      </td>
+      <td>
+          <canvas id="canvasOutput"></canvas>
+      </td>
+  </tr>
+  <tr>
+      <td>
+          <div class="caption">imgInput 
+            <input type="file"
+                   id="fileInput" 
+                   name="file" 
+                   accept="image/*" />
+          </div>
+      </td>
+      <td>
+          <div class="caption">canvasOutput</div>
+      </td>
+  </tr>
+  </table>
+</div>
+<script type="text/javascript">
+
+// manipulación del HTML 
+let imgElement = document.getElementById('imageSrc');         
+let inputElement = document.getElementById('fileInput');     
+inputElement.addEventListener('change', (e) => {             
+    imgElement.src = URL.createObjectURL(e.target.files[0]); 
+}, false);
+
+// OpenCV
+imgElement.onload = function() {
+    let mat = cv.imread(imgElement);
+    cv.imshow('canvasOutput', mat);
+    mat.delete();
+};
+// Se ejecuta cuando OpenCv está cargada y preparada
+function onOpenCvReady() { 
+    document.getElementById('status').innerHTML =
+     '<b>OpenCV.js está preparada</b>.' +
+      'Puede cargar una imagen.<br>'
+}
+// Se ejecuta cuando se produce un error durante el proceso
+// de carga de OpenCv
+function onOpenCvError() {
+    let element = document.getElementById('status');
+    element.setAttribute('class', 'err');
+    element.innerHTML = 'Falló la carga de opencv.js';
+}
+</script>
+<script async src="assets/opencv.js" 
+              type="text/javascript" 
+              onload="onOpenCvReady();" 
+              onerror="onOpenCvError();">
+</script>
+</body>
+</html>

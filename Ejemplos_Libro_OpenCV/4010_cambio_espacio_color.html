@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Cambio del espacio de color</title>
+<link href="assets/js_example_style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<h2>Cambio del espacio de color</h2>
+<div>
+<p class="err" id="errorMessage"></p>
+</div>
+<div>
+    <table cellpadding="0" cellspacing="0" width="0" border="0">
+    <tr>
+        <td>
+            <canvas id="canvasInput"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasOutput"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="caption">canvasInput</div>
+        </td>
+        <td>
+            <div class="caption">canvasOutput</div>
+        </td>
+    </tr>
+    </table>
+</div>
+
+<script src="assets/utils.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+let utils = new Utils('errorMessage');
+
+// HTML
+utils.loadImageToCanvas('assets/lena.png', 'canvasInput');
+
+// OpenCV
+// Convert Color Example
+utils.loadOpenCv(() => {
+    let src = cv.imread('canvasInput');
+    let dst = new cv.Mat();
+    // Puede probar con diferentes parámetros
+    cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0);
+    cv.imshow('canvasOutput', dst);
+    src.delete();
+    dst.delete();
+});
+</script>
+</body>
+</html>

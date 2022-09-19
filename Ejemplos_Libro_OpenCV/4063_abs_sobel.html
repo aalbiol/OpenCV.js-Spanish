@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>AbsSobel</title>
+<link href="assets/js_example_style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<h2>AbsSobel</h2>
+<div>
+<p class="err" id="errorMessage"></p>
+</div>
+<div>
+    <table cellpadding="0" cellspacing="0" width="0" border="0">
+    <tr>
+        <td>
+            <canvas id="canvasInput"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasOutput8U"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasOutput64F"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="caption">canvasInput</div>
+        </td>
+        <td>
+            <div class="caption">Output Sobel x</div>
+        </td>
+        <td>
+            <div class="caption">Output AbsSobel x</div>
+        </td>
+    </tr>
+    </table>
+</div>
+
+<script src="assets/utils.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+let utils = new Utils('errorMessage');
+
+// HTML
+utils.loadImageToCanvas('assets/shape.png', 'canvasInput');
+
+// OpenCV
+// Image AbsSobel Example
+utils.loadOpenCv(() => {
+    let src = cv.imread('canvasInput');
+    let dstx = new cv.Mat();
+    let absDstx = new cv.Mat();
+    cv.cvtColor(src, src, cv.COLOR_RGB2GRAY, 0);
+    // Puede probar con diferentes parámetros
+    cv.Sobel(src, dstx, cv.CV_8U, 1, 0, 3, 1, 0, cv.BORDER_DEFAULT);
+    cv.Sobel(src, absDstx, cv.CV_64F, 1, 0, 3, 1, 0, cv.BORDER_DEFAULT);
+    cv.convertScaleAbs(absDstx, absDstx, 1, 0);
+    cv.imshow('canvasOutput8U', dstx);
+    cv.imshow('canvasOutput64F', absDstx);
+    src.delete(); dstx.delete(); absDstx.delete();
+
+});
+</script>
+</body>
+</html>

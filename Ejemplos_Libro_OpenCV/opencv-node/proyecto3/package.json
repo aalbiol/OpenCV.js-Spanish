@@ -1,0 +1,17 @@
+{
+  "name": "proyecto3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ejemplo30.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "canvas": "^2.9.3",
+    "fs": "^0.0.1-security",
+    "jsdom": "^20.0.0"
+  }
+}

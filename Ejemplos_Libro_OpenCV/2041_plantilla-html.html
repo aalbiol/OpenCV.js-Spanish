@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Título ejemplo</title>
+<link href="assets/js_example_style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<h2>Título ejemplo</h2>
+<div>
+<p class="err" id="errorMessage"></p>
+</div>
+<div>
+    <table cellpadding="0" cellspacing="0" width="0" border="0">
+    <tr>
+        <td>
+            <canvas id="canvasInput"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasOutput"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="caption">canvasInput</div>
+        </td>
+        <td>
+            <div class="caption">canvasOutput</div>
+        </td>
+    </tr>
+    </table>
+</div>
+
+<script src="assets/utils.js" type="text/javascript"></script>
+<script type="text/javascript">
+let utils = new Utils('errorMessage');
+
+// HTML
+utils.loadImageToCanvas('assets/lena.png', 'canvasInput');
+
+// OpenCV
+// Ejemplo convertir color
+utils.loadOpenCv(() => {
+    // Inicio código OpenCV
+    // Esteé codigo se reemplazará por el correspodiente de cada ejemplo
+    let src = cv.imread('canvasInput');
+    let dst = new cv.Mat();
+    cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY, 0);
+    cv.imshow('canvasOutput', dst);
+    src.delete();
+    dst.delete();
+    // Fin códgo OpenCV.js
+});
+</script>
+</body>
+</html>

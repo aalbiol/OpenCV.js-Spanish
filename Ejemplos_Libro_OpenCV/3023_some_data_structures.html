@@ -1,0 +1,228 @@
+<!-- 
+    El problema con los ejemplos es que tanto la carga de opencv.js como las imágenes
+    es asíncrona y si no se tiene en cuenta adecuadamente nos ponemos a jecutar instrucciones
+    antes de que dichas cargas se hayan completado.
+    Utilizando la librería utils.js se resuelve el problema pero de toads formas hay
+    que colocar el código adecuadamente, si no no funciona tampoco.
+
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Image Read and Show Example</title>
+<link href="assets/js_example_style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<h2>Image Read and Show Example</h2>
+<div>
+<p class="err" id="errorMessage"></p>
+</div>
+<div>
+    <table cellpadding="0" cellspacing="0" width="0" border="0">
+    <tr>
+        <td>
+            <canvas id="canvasOutput"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="caption">canvasOutput</div>
+        </td>
+    </tr>
+    </table>
+</div>
+
+<script src="assets/utils.js" type="text/javascript"></script>
+<script type="text/javascript">
+let utils = new Utils('errorMessage');
+
+// OpenCV
+utils.loadOpenCv(() => {
+   
+    // ESTRUCTURAS DE DATOS
+    // ====================
+    
+    // Point
+    // =====
+    {
+        x = 4, y = 8
+        let pointA = new cv.Point(x, y);
+        let pointB = {x: x, y: y};
+    }
+    
+    // Scalar
+    // ======
+    {
+        R = 250, G = 25; B = 0; Alpha = 255
+        let scalarA = new cv.Scalar(R, G, B, Alpha);
+        let scalarB = [R, G, B, Alpha];    
+    }
+
+    // Size
+    // ====
+    {
+        width = 60, height = 30
+        let sizeA = new cv.Size(width, height);
+        let sizeB = {width : width, height : height}; 
+    }
+    
+    // Circle
+    // ======
+    {
+        let center = new cv.Point(100, 100);
+        let radius = 50
+
+        let circleA = new cv.Circle(center, radius);
+        let circleB = {center : center, radius : radius};
+
+        console.log(circleB.center)     // Point {x: 100, y: 100}
+    }
+
+    // Rect
+    // ====
+    {
+        let rectA = new cv.Rect(x, y, width, height);
+        let rectB = {x : x, y : y, width : width, height : height};
+        console.log(rectB.x)    // 4 -> Coge la x de Point (primer bloque)
+    }
+   
+
+    // RotatedRect
+    // ===========
+    {
+        let center = new cv.Point(100, 100);
+        let size = new cv.Size(50, 80); 
+        let angle = 45
+        let rotatedRectA = new cv.RotatedRect(center, size, angle);
+        let rotatedRectB = {center : center, size : size, angle : angle};    
+    }
+   
+    // Obtener los vértices de un rotatedRect
+    // ======================================
+    {
+        let center = new cv.Point(100, 100);
+        let size = new cv.Size(50, 80); 
+        let angle = 45
+        let rotatedRectA = new cv.RotatedRect(center, size, angle);
+        let vertices = cv.RotatedRect.points(rotatedRectA);
+        let point1 = vertices[0];
+        let point2 = vertices[1];
+        let point3 = vertices[2];
+        let point4 = vertices[3];
+    }
+
+    // Obtener el rectángulo delimitador de un rotatedRect
+    // ===================================================
+    {
+        let center = new cv.Point(100, 100);
+        let size = new cv.Size(50, 80); 
+        let angle = 45
+        let rotatedRectA = new cv.RotatedRect(center, size, angle);
+        let boundingRect = cv.RotatedRect.boundingRect(rotatedRectA);           
+    }
+
+    // ========================== FUNCIONES DE DIBUJO ==========================
+
+    /*
+        Aquí hay un listado de funciones con los parámetros pero estan en C++
+        https://docs.opencv.org/3.4/d6/d6e/group__imgproc__draw.html
+
+        Aquí en Python
+        https://docs.opencv.org/4.x/dc/da5/tutorial_py_drawing_functions.html
+    */
+
+    let img = cv.Mat.zeros(512, 512, cv.CV_8U);
+
+    // cv.line()
+    // =========
+    {
+        let p1 = new cv.Point(100, 100);
+        let p2 = new cv.Point(200, 200);
+        let scalar = new cv.Scalar(150, 190, 280, 255);
+        cv.line(img,p1,p2,scalar,5)
+        cv.imshow('canvasOutput', img);
+    }
+
+    // cv.rectangle
+    // ============
+    {
+        let p1 = new cv.Point(100, 100);
+        let p2 = new cv.Point(200, 200);
+        let scalar = new cv.Scalar(150, 190, 280, 255);
+        cv.rectangle(img, p1, p2, scalar, 3)
+        cv.imshow('canvasOutput', img);
+    }
+    
+    // cv.circle
+    // =========
+    {   
+        let centro = new cv.Point(300, 300);
+        let radio = 100
+        let scalar = new cv.Scalar(150, 190, 280, 255);
+        cv.circle(img, centro, radio, scalar, 3)    // con -1 es círculo relleno
+        cv.imshow('canvasOutput', img);
+    }
+    
+    // cv.ellipse
+    //===========
+    /* cv.ellipse  (InputOutputArray        img, 
+                    Point                   center, 
+                    Size                    axes, 
+                    ouble                   angle, 
+                    double                  startAngle, 
+                    double                  endAngle, 
+                    const                   Scalar &color, 
+                    int                     thickness=1, 
+                    int                     lineType=LINE_8, 
+                    int                     shift=0
+                    )
+    */	
+    {
+        let center = new cv.Point(300, 300);
+        let size = new cv.Size(50, 200); 
+        let angle = 45
+        let startAngle = 20
+        let endAngle = 245
+        let scalar = new cv.Scalar(150, 190, 280, 255);
+
+        cv.ellipse(img, center, size, angle, startAngle, endAngle, scalar, 5)
+        cv.imshow('canvasOutput', img);
+    }
+
+    // cv.polylines
+    // ============
+    // No funcionan los ejemlos. Hay que buscar información
+    
+
+    // cv.putText
+    // ==========
+    /*
+        void cv.putText	(	InputOutputArray 	img,
+                            const   String & 	text,
+                            Point           	org,
+                            int 	            fontFace,
+                            double 	            fontScale,
+                            Scalar 	            color,
+                            int 	            thickness = 1,
+                            int 	            lineType = LINE_8,
+                            bool 	            bottomLeftOrigin = false 
+        )	
+    */
+    {
+        let text = "OpenCV"
+        let org = new cv.Point(100, 300)
+        let fontFace = cv.FONT_HERSHEY_SIMPLEX
+        let fontScale = 2
+        let color = new cv.Scalar(150, 190, 280, 255);
+        let thickness = 3
+        cv.putText(	img, text, org, fontFace, fontScale, color, thickness)
+        cv.imshow('canvasOutput', img);
+
+    }
+
+});
+</script>
+</body>
+</html>

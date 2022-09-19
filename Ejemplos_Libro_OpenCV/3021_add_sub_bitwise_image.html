@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Suma, resta y operaciones bit a bit sobre imágenes</title>
+<link href="assets/js_example_style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<h2>Suma, resta y operaciones bit a bit sobre imágenes</h2>
+<div>
+<p class="err" id="errorMessage"></p>
+</div>
+<div>
+    <table cellpadding="0" cellspacing="0" width="0" border="0">
+    <tr>
+        <td>
+            <canvas id="canvasInput1"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasInput2"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasOutput1"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasOutput2"></canvas>
+        </td>
+        <td>
+            <canvas id="logoCanvasInput"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasOutput3"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            canvasInput1
+        </td>
+        <td>
+            canvasInput2
+        </td>
+        <td>
+            canvasOutput1
+        </td>
+        <td>
+            canvasOutput2
+        </td>
+        <td>
+            logoCanvasInput
+        </td>
+        <td>
+            canvasOutput3
+        </td>
+    </tr>
+    </table>
+</div>
+
+<script src="assets/utils.js" type="text/javascript"></script>
+<script type="text/javascript">
+let utils = new Utils('errorMessage');
+
+// HTML
+utils.loadImageToCanvas('assets/lena.jpg', 'canvasInput1');
+utils.loadImageToCanvas('assets/shaum3a_mini.jpg', 'canvasInput2');
+utils.loadImageToCanvas('assets/OpenCV_Logo_mini.png', 'logoCanvasInput');
+
+// OpenCV
+utils.loadOpenCv(() => {
+
+    // Adición de imágenes con cv.add()
+    // ================================
+    
+    let src1 = cv.imread("canvasInput1");
+    let src2 = cv.imread("canvasInput2");
+    let dst = new cv.Mat();
+    let mask = new cv.Mat();
+    let dtype = -1;     // depth opcional de la matriz de salida; si tienen el mismo depth,
+                                            // dtype se puede establecer en -1, que será
+                                            // equivalente a src1.depth().
+    cv.add(src1, src2, dst, mask, dtype);
+    cv.imshow('canvasOutput1', dst);
+    src1.delete(); src2.delete(); dst.delete(); mask.delete();
+    
+    // Substracción de imágenes con cv.subtract()
+    // ==========================================
+    {
+        let src1 = cv.imread("canvasInput1");
+        let src2 = cv.imread("canvasInput2");
+
+        // Pasamos las imágenes a grises para evitar canal alfa
+        cv.cvtColor(src1, src1, cv.COLOR_RGBA2GRAY);
+        cv.cvtColor(src2, src2, cv.COLOR_RGBA2GRAY);
+
+        let dst = new cv.Mat();
+        let mask = new cv.Mat();
+        let dtype = -1;
+        cv.subtract(src1, src2, dst, mask, dtype);
+        cv.imshow('canvasOutput2', dst);
+        src1.delete(); src2.delete(); dst.delete(); mask.delete();
+    }
+    
+    // Operaciones bit a bit
+    // =====================
+    // Incluyen las operaciones bit a bit AND, OR, NOT y XOR. Serán muy útiles al extraer
+    // cualquier parte de la imagen, definir y trabajar con un ROI no rectangular, etc.
+    // A continuación veremos un ejemplo de cómo cambiar una región particular de una imagen.
+
+    // Queremos poner el logotipo de OpenCV encima de una imagen. Si agregamos dos imágenes,
+    // cambiará de color. Si lo difuminamos, obtenemos un efecto transparente. Pero queremos
+    // que sea opaco. Si fuera una región rectangular, podríamos usar el ROI como lo hicimos
+    // en el último capítulo. Pero el logotipo de OpenCV no tiene forma rectangular. 
+    // Entonces podemos hacerlo con operaciones bit a bit.
+    {
+        let src = cv.imread('canvasInput1');
+        let logo = cv.imread('logoCanvasInput');
+        let dst = new cv.Mat();
+        let roi = new cv.Mat();
+        let mask = new cv.Mat();
+        let maskInv = new cv.Mat();
+        let imgBg = new cv.Mat();
+        let imgFg = new cv.Mat();
+        let sum = new cv.Mat();
+        let rect = new cv.Rect(0, 0, logo.cols, logo.rows);
+
+        // Queremos pner el logo en la esquina superior izquierda, luego
+        // creamos un ROI
+        roi = src.roi(rect);
+
+        // Creamos una máscara del logo y su inversa
+        cv.cvtColor(logo, mask, cv.COLOR_RGBA2GRAY, 0);
+        cv.threshold(mask, mask, 100, 255, cv.THRESH_BINARY);
+        cv.bitwise_not(mask, maskInv);
+
+        // Ocultar el área del logotipo en ROI
+        cv.bitwise_and(roi, roi, imgBg, maskInv);
+
+        // Tomamos solo la región del logotipo de la imagen del logotipo
+        cv.bitwise_and(logo, logo, imgFg, mask);
+
+        // Poner el logo en ROI y modificar la imagen principal
+        cv.add(imgBg, imgFg, sum);
+
+        dst = src.clone();
+        for (let i = 0; i < logo.rows; i++) {
+            for (let j = 0; j < logo.cols; j++) {
+                dst.ucharPtr(i, j)[0] = sum.ucharPtr(i, j)[0];
+            }
+        }
+        cv.imshow('canvasOutput3', dst);
+        src.delete(); dst.delete(); logo.delete(); roi.delete(); mask.delete();
+        maskInv.delete(); imgBg.delete(); imgFg.delete(); sum.delete();
+    } 
+});
+</script>
+</body>
+</html>

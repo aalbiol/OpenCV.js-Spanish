@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Operaciones básicas</title>
+<link href="assets/js_example_style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<h2>Operaciones básicas</h2>
+<div>
+<p class="err" id="errorMessage"></p>
+</div>
+<div>
+    <table cellpadding="0" cellspacing="0" width="0" border="0">
+    <tr>
+        <td>
+            <canvas id="canvasInput"></canvas>
+        </td>
+        <td>
+            <canvas id="canvasOutput"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div class="caption">canvasInput 
+                <input type="file" 
+                       id="fileInput" 
+                       name="file" 
+                       accept="image/*" />
+            </div>
+        </td>
+        <td>
+            <div class="caption">canvasOutput</div>
+        </td>
+    </tr>
+    </table>
+</div>
+
+<script src="assets/utils.js" type="text/javascript"></script>
+<script type="text/javascript">
+let utils = new Utils('errorMessage');
+
+// HTML
+utils.loadImageToCanvas('assets/lena.png', 'canvasInput');
+utils.addFileInputHandler('fileInput', 'canvasInput');
+
+// OpenCV
+
+utils.loadOpenCv(() => {
+    
+    // Averiguar el tipo de una matriz
+    let src = cv.imread('canvasInput');
+    console.log('tipo: ' + src.type())   //=> 24
+        
+    // Leer las propiedades de la imagen (matriz)
+    console.log('width: ' + src.cols)
+    console.log('height: ' + src.rows)        
+    console.log('size: ' + src.size().width + '*' + src.size().height)        
+    console.log('depth: ' + src.depth())        
+    console.log('channels ' + src.channels())       
+    console.log('type: ' + src.type())               
+
+    // Cómo construir la matriz
+    // Valores auxiliares
+    let rows = 3
+    let cols = 5
+    let size = new cv.Size(cols, rows);
+    let type = cv.CV_32F
+
+    // Hay cuatro construcores básicos
+    // ===============================
+    // 1. constructor por defecto
+    let mat1 = new cv.Mat();
+    // 2. matrices bidimensionales indicando size y type
+    let mat2 = new cv.Mat(size, cv.CV_8U);
+    // 3. matrices bidimensionales indicando rows, cols, y type
+    let mat3 = new cv.Mat(cols, rows, cv.CV_8UC3);
+    // 4. matrices bidimensionales indicando rows, cols, y type con valor de inicialización
+    let mat4 = new cv.Mat(cols, rows, cv.CV_8U, new cv.Scalar());
+
+    // Hay tres constructores estáticos
+    // ===============================
+    {
+        // 1. Crear una matriz con todos los elementos de valor cero
+        let mat1 = cv.Mat.zeros(rows, cols, type);
+        // 2. Crear una matriz con todos los elementos de valor uno
+        let mat2 = cv.Mat.ones(rows, cols, type);
+        // 3. Crear una matriz Identidad (diagonal principal unos y resto ceros)
+        let mat3 = cv.Mat.eye(rows, rows, type);
+    }
+
+    // Hay dos factorías de funciones
+    // ==============================
+    // 1. Utiliza un JS array para construir una matriz.
+    // Por ejemplo:
+    { 
+        // let mat = cv.matFromArray(rows, cols, type, array);
+        let mat1 = cv.matFromArray(2, 2, cv.CV_8UC1, [1, 2, 3, 4]);
+
+        // 2. Utiliza el imgData de un canvas para construir la matriz
+        let ctx = canvasInput.getContext("2d");
+        let imgData = ctx.getImageData(0, 0, 100, 100);
+        let mat2 = cv.matFromImageData(imgData);
+    }
+
+    // Hay dos formas de copiar una matriz
+    // ===================================
+    {
+        // 1. Clonando la matriz
+        let src = cv.imread('canvasInput');
+        let dst = src.clone()
+
+        // 2. Con CopyTo (solo se copian las entradas indicadas en la máscara)
+        // Fuente
+        let srcA = cv.Mat.zeros(8, 8, cv.CV_8UC3);
+        // Máscara
+        let mask = cv.Mat.ones(8, 8, cv.CV_8UC3); // todo unos
+        // Destino
+        let destA = new cv.Mat()
+        // Copiamos srcA en destA teniendo en cuenta la máscara
+        // Copia todos los ceros de srcA en destA
+        srcA.copyTo(destA, mask);
+    }
+
+    // Convertir el tipo de una matriz
+    // ==============================
+    /*
+    Utilizar la función:
+       convertTo(dest, rtype, alpha = 1, beta = 0) 
+    
+       Parámetros:  
+       
+        dest    matriz de salida; si no tiene un tamaño o tipo adecuado
+                antes de la operación, se reasigna.
+
+        rtype   el tipo de matriz de salida deseado o, mejor dicho, la
+                profundidad ya que el número de canales es el mismo que
+                tiene la entrada; si rtype es negativo, la matriz de salida
+                tendrá el mismo tipo que la entrada
+
+        alpha	factor de escala opcional
+
+        beta    delta opcional agregado a los valores escalados.
+    */
+
+    {
+        let mat = cv.imread('canvasInput');
+        console.log('type mat: ' + mat.type())      // 24
+        let dest = new cv.Mat()
+        mat.convertTo(dest, cv.CV_64FC4)
+        console.log('type dest: ' + dest.type())    // 30
+    }
+    
+
+    // Como utilizar MatVector
+    // =======================
+    {
+        let mat = new cv.Mat();
+        // Initialise a MatVector
+        let matVec = new cv.MatVector();
+        // Push a Mat back into MatVector
+        matVec.push_back(mat);
+        // Get a Mat fom MatVector
+        let cnt = matVec.get(0);
+        mat.delete(); matVec.delete(); cnt.delete();
+
+        // No olvide eliminar mat, matVec y cnt
+        // cuando ya no quiera usarlos.
+    }
+
+    // Acceder y modificar los pixels de una matriz
+    // ============================================
+    /*
+    En primer lugar, debe conocer la siguiente relación de tipos:
+
+        Data Properties	C++      TyJavaScript Typed Array	Mat Type
+        =============== ======== ========================   ========
+        data	        uchar	 Uint8Array	                CV_8U
+        data8S	        char	 Int8Array	                CV_8S
+        data16U	        ushort	 Uint16Array	            CV_16U
+        data16S	        short	 Int16Array	                CV_16S
+        data32S	        int	     Int32Array	                CV_32S
+        data32F	        float    Float32Array	            CV_32F
+        data64F         double	 Float64Array	            CV_64F
+    {
+    */
+        {
+            // 1. utilizando la propiedad data
+            // ===============================
+            // La manipulación de datos como haremos a continuación solo es válida
+            // para una Mat continua.
+            // Debemos usar isContinuous() para verificarlo primero.
+            // Accedemos a los valores R, G, B, A del pixel de la tercera fila y cuarta columna
+            let row = 3, col = 4;
+            let src = cv.imread("canvasInput");
+            
+           
+            if (src.isContinuous()) {
+                // Escribimos sobre la matriz
+                src.data[row * src.cols * src.channels() + col * src.channels()] = 100
+                src.data[row * src.cols * src.channels() + col * src.channels() + 1] = 150
+                src.data[row * src.cols * src.channels() + col * src.channels() + 2] = 200
+                src.data[row * src.cols * src.channels() + col * src.channels() + 3] == 255
+
+                // Leemos de la matriz
+                R = src.data[row * src.cols * src.channels() + col * src.channels()];
+                G = src.data[row * src.cols * src.channels() + col * src.channels() + 1];
+                B = src.data[row * src.cols * src.channels() + col * src.channels() + 2];
+                A = src.data[row * src.cols * src.channels() + col * src.channels() + 3];
+                // Los valores que hemos escrito
+                console.log(R, G, B, A)     // 100 150 200 255
+            }
+            
+        }
+
+        {
+            // 2. utilizando la propiedad at
+            // =============================
+            // La manipulación con at es para un solo canal y los valores no se puede modificar.
+            // Según el tipo de matriz hay que utilizar el siguiente manipulador at:
+            /*
+                Mat Type	At Manipulation
+                CV_8U	    ucharAt
+                CV_8S	    charAt
+                CV_16U	    ushortAt
+                CV_16S	    shortAt
+                CV_32S	    intAt
+                CV_32F	    floatAt
+                CV_64F	    doubleAt
+            */
+            let row = 3, col = 4;
+            let src = cv.imread("canvasInput");
+
+            let R = src.ucharAt(row, col * src.channels());
+            let G = src.ucharAt(row, col * src.channels() + 1);
+            let B = src.ucharAt(row, col * src.channels() + 2);
+            let A = src.ucharAt(row, col * src.channels() + 3);
+        }
+
+        {
+            // 3. ptr
+            // mat.ucharPtr(k) obtiene la k-ésima fila de la matriz
+            // mat.ucharPtr(i, j) obtiene el pixel de la i-ésima fila y la j-ésima
+            // columna de la matriz
+            /*
+                Mat Type	Ptr Manipulation	JavaScript Typed Array
+                CV_8U	    ucharPtr	        Uint8Array
+                CV_8S	    charPtr	            Int8Array
+                CV_16U	    ushortPtr	        Uint16Array
+                CV_16S	    shortPtr	        Int16Array
+                CV_32S	    intPtr	            Int32Array
+                CV_32F	    floatPtr	        Float32Array
+                CV_64F	    doublePtr	        Float64Array
+            */
+            let row = 3, col = 4;
+            let src = cv.imread("canvasInput");
+            let pixel = src.ucharPtr(row, col);
+            let R = pixel[0];
+            let G = pixel[1];
+            let B = pixel[2];
+            let A = pixel[3];
+        }
+    
+    /*
+        Al principio del script hemos utilizado la instrucción:
+            utils.loadImageToCanvas('assets/lena.png', 'canvasInput');
+        que carga la imagen lena.jpg en el canvas con ia="canvasInput"
+        y por tanto se visualiza.
+
+        Abajo construimos la natriz dest transformando a grises la matriz
+        src correspondiente a la imagen de lena.png y la mostramos en el
+        canvas con id="canvasOutput"
+
+        De esta manera, cuando no hay errores en el documento debe mostrar
+        las dos imágenes cuando éste se cargue, y no es necesrio revisar la
+        consola del navegador puesto que no tendremos errores.
+    */
+    let dst = new cv.Mat();
+    // Pasamos la imagen a grises
+    cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
+    cv.imshow('canvasOutput', dst);
+    src.delete();
+    dst.delete();
+});
+</script>
+</body>
+</html>
